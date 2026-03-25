@@ -1,46 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farm Seeva - Login</title>
-    <link rel="stylesheet" href="css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="lang_select_title">Farm Seeva - Choose Language</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="login-page">
-    <div class="container glass">
-        <header>
-            <div class="logo">🌾 Farm Seeva</div>
-            <select id="lang-switch" class="btn-secondary">
-                <option value="en">English</option>
-                <option value="hi">हिंदी (Hindi)</option>
-                <option value="ta">தமிழ் (Tamil)</option>
-            </select>
-        </header>
-
-        <main id="app">
-            <h1 data-i18n="login_title">Login to Terra-AI</h1>
-            <p data-i18n="login_subtitle">Enter your phone number to continue</p>
-            
-            <form id="login-form" class="form-group">
-                <div class="input-wrap">
-                    <span class="icon">📱</span>
-                    <input type="tel" id="phone" placeholder="9876543210" required>
-                </div>
-                <button type="submit" class="btn-primary" data-i18n="login_btn">Get OTP</button>
-            </form>
-            
-            <p class="error-msg" id="login-error"></p>
-        </main>
+<body>
+  <div class="lang-container" id="app">
+    <div class="logo-section">
+      <span class="logo-icon">🌾</span>
+      <h1 class="logo-text">Farm Seeva</h1>
     </div>
 
-    <script src="js/i18n.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script>
-        // Check if already logged in
-        if (localStorage.getItem('token')) {
-            window.location.href = 'dashboard.html';
-        }
-    </script>
+    <div class="header-text">
+      <h1 data-i18n="lang_select_title">Choose Your Language</h1>
+      <p data-i18n="lang_select_subtitle">Select your native language to continue</p>
+    </div>
+
+    <div class="lang-grid" id="lang-grid">
+      <!-- To be populated by JS -->
+    </div>
+  </div>
+
+  <script type="module">
+    import i18n from './js/i18n.js';
+
+    const languages = [
+      { code: 'en', script: 'English', name: 'English' },
+      { code: 'ta', script: 'தமிழ்', name: 'Tamil' },
+      { code: 'hi', script: 'हिंदी', name: 'Hindi' },
+      { code: 'te', script: 'తెలుగు', name: 'Telugu' },
+      { code: 'ml', script: 'മലയാളം', name: 'Malayalam' },
+      { code: 'kn', script: 'ಕನ್ನಡ', name: 'Kannada' },
+      { code: 'mr', script: 'मराठी', name: 'Marathi' },
+      { code: 'gu', script: 'ગુજરાતી', name: 'Gujarati' },
+      { code: 'bn', script: 'বাংলা', name: 'Bengali' },
+      { code: 'pa', script: 'ਪੰਜਾਬੀ', name: 'Punjabi' }
+    ];
+
+    const langGrid = document.getElementById('lang-grid');
+
+    async function init() {
+      await i18n.init();
+      renderLanguages();
+    }
+
+    function renderLanguages() {
+      languages.forEach(lang => {
+        const card = document.createElement('div');
+        card.className = 'lang-card';
+        card.innerHTML = `
+          <div class="lang-card-inner">
+            <span class="lang-script">${lang.script}</span>
+            <span class="lang-name">${lang.name}</span>
+          </div>
+        `;
+        
+        card.addEventListener('click', (e) => handleLangSelect(lang.code, e));
+        langGrid.appendChild(card);
+      });
+    }
+
+    async function handleLangSelect(code, e) {
+      // Create ripple effect
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      e.currentTarget.querySelector('.lang-card-inner').appendChild(ripple);
+      
+      const x = e.clientX - e.currentTarget.offsetLeft;
+      const y = e.clientY - e.currentTarget.offsetTop;
+      ripple.style.left = `${x}px`;
+      ripple.style.top = `${y}px`;
+      
+      // Save language
+      localStorage.setItem('lang', code);
+      
+      // Animate transition
+      document.body.classList.add('fade-out');
+      
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 500);
+    }
+
+    init();
+  </script>
 </body>
 </html>

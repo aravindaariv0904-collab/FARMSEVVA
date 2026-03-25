@@ -1,51 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Farm Seeva</title>
-    <link rel="stylesheet" href="css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="dashboard_title">Farm Seeva - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .dashboard-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2.5rem;
+      width: 100%;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .user-info { display: flex; align-items: center; gap: 1.5rem; }
+    .btn-logout { background: transparent; border: 1px solid var(--glass-border); color: #fff; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+    .btn-logout:hover { background: #ff4757; border-color: #ff4757; }
+    .content-area { padding: 3rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem; }
+    .stat-card { padding: 2rem; border-radius: 20px; transition: 0.3s; cursor: pointer; }
+    .stat-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.15); }
+    .stat-value { font-size: 2.5rem; font-weight: 800; margin-top: 1rem; color: var(--primary); }
+    .stat-label { font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  </style>
 </head>
-<body class="dashboard-page">
-    <nav class="nav-bar">
-        <span class="logo">🌾 Farm Seeva</span>
-        <div class="user-controls">
-            <span id="user-phone"></span>
-            <button onclick="window.location.href='soil.html'" class="btn-text">Update Soil</button>
-            <button onclick="auth.logout()" class="btn-text logout">Logout</button>
-        </div>
-    </nav>
-    <div class="container glass">
-        <h1 data-i18n="dashboard_title">Dashboard</h1>
-        <p data-i18n="dashboard_subtitle">Current Soil & Recommended Crops</p>
-        
-        <div class="grid-layout">
-            <div class="card glass no-border">
-                <h3 data-i18n="soil_results">Latest Soil Results</h3>
-                <div id="results-list" class="results-list">
-                    <p data-i18n="loading">Loading...</p>
-                </div>
-            </div>
-            <div class="card glass no-border highlight">
-                <h3 data-i18n="recommendations">Recommended Crops</h3>
-                <div id="crops-list" class="crops-list">
-                    <p data-i18n="loading">Loading...</p>
-                </div>
-            </div>
-        </div>
+<body class="fade-in">
+  <nav class="dashboard-nav">
+    <div class="logo-section" style="margin-bottom: 0; animation: none;">
+      <span class="logo-icon" style="font-size: 1.5rem;">🌾</span>
+      <span style="font-weight: 800; font-size: 1.2rem;">Farm Seeva</span>
     </div>
 
-    <script src="js/i18n.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/soil.js"></script>
-    <script src="js/crop.js"></script>
-    <script>
-        if (!localStorage.getItem('token')) { window.location.href = 'index.html'; }
-        document.addEventListener('DOMContentLoaded', () => {
-            // Fetch initial dashboard data
-            soil.loadDashboard();
-        });
-    </script>
+    <div class="user-info">
+      <span id="display-phone" style="font-weight: 600;"></span>
+      <button class="btn-logout" id="logout-btn" data-i18n="btn_logout">Logout</button>
+    </div>
+  </nav>
+
+  <div class="content-area">
+    <h1 data-i18n="dashboard_title">Dashboard</h1>
+    <p data-i18n="dashboard_subtitle" id="welcome-msg">Welcome back!</p>
+
+    <div class="stats-grid">
+      <div class="stat-card glass no-border" onclick="window.location.href='soil.html'">
+        <span class="stat-label" data-i18n="nav_soil">Soil Health</span>
+        <div class="stat-value">Excellent</div>
+      </div>
+      <div class="stat-card glass no-border" onclick="window.location.href='crops.html'">
+        <span class="stat-label" data-i18n="nav_crops">Crop Advise</span>
+        <div class="stat-value">3 New</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import i18n from './js/i18n.js';
+    import auth from './js/auth.js';
+
+    async function init() {
+      if (!auth.isAuthenticated()) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      await i18n.init();
+      
+      const userData = auth.user;
+      if (userData) {
+          document.getElementById('display-phone').innerText = userData.phoneNumber;
+      }
+
+      document.getElementById('logout-btn').onclick = () => auth.logout();
+    }
+
+    init();
+  </script>
 </body>
 </html>
