@@ -1,0 +1,106 @@
+// Prisma schema for Farm Seeva Backend
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String          @id @default(uuid())
+  phoneNumber  String          @unique
+  name         String?
+  language     String          @default("en")
+  firebaseUid  String          @unique
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  farms        Farm[]
+  interactions AIInteraction[]
+}
+
+model Farm {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  name        String?
+  latitude    Float?
+  longitude   Float?
+  boundaries  Json?         // Polygon coordinates
+  area        Float?        // in hectares or acres
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  soilData    SoilData[]
+  calendars   CropCalendar[]
+}
+
+model SoilData {
+  id            String   @id @default(uuid())
+  farmId        String
+  farm          Farm     @relation(fields: [farmId], references: [id])
+  ph            Float?
+  nitrogen      Float?
+  phosphorus    Float?
+  potassium     Float?
+  organicMatter Float?
+  source        String   // OCR, AI_CHAT, MANUAL, IOT, GPS_AUTO
+  createdAt     DateTime @default(now())
+}
+
+model Crop {
+  id             String         @id @default(uuid())
+  name           String
+  scientificName String?
+  season         String?
+  durationDays   Int?
+  calendars      CropCalendar[]
+  prices         MarketPrice[]
+}
+
+model CropCalendar {
+  id        String   @id @default(uuid())
+  farmId    String
+  farm      Farm     @relation(fields: [farmId], references: [id])
+  cropId    String
+  crop      Crop     @relation(fields: [cropId], references: [id])
+  startDate DateTime
+  endDate   DateTime?
+  status    String   // PLANNED, ACTIVE, HARVESTED
+  tasks     Json     // Day-by-day tasks
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WeatherData {
+  id        String   @id @default(uuid())
+  latitude  Float
+  longitude Float
+  date      DateTime
+  forecast  Json     // Full weather payload
+  createdAt DateTime @default(now())
+  
+  @@unique([latitude, longitude, date])
+}
+
+model MarketPrice {
+  id        String   @id @default(uuid())
+  cropId    String
+  crop      Crop     @relation(fields: [cropId], references: [id])
+  market    String
+  price     Float
+  unit      String
+  trend     String?  // UP, DOWN, STABLE
+  date      DateTime
+  createdAt DateTime @default(now())
+}
+
+model AIInteraction {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // CHAT, IMAGE_DETECT, CROP_REC
+  query     String
+  response  String
+  createdAt DateTime @default(now())
+}

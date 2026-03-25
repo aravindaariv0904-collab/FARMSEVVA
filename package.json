@@ -1,0 +1,18 @@
+{
+  "name": "farm-seeva-gateway",
+  "version": "1.0.0",
+  "description": "Single Port Gateway for Farm Seeva",
+  "main": "gateway.js",
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6"
+  },
+  "scripts": {
+    "start": "concurrently \"npm run start:mobile\" \"npm run start:backend\" \"npm run start:ai\" \"node gateway.js\"",
+    "start:mobile": "cd mobile && npm run web",
+    "start:backend": "cd backend && npm run dev",
+    "start:ai": "cd ai-engine && uvicorn main:app --host 0.0.0.0 --port 8000"
+  }
+}
+
