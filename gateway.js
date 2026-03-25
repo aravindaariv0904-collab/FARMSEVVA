@@ -1,33 +1,27 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const path = require('path');
 
 const app = express();
 const PORT = 3000;
 
-// 1. Route AI Engine traffic (to Python FastAPI on port 8000)
-app.use('/api/ai', createProxyMiddleware({ 
-  target: 'http://localhost:8000', 
-  changeOrigin: true,
-  pathRewrite: { '^/api/ai': '' } // Strips /api/ai before sending to Python
-}));
+// 1. Serve Frontend static files
+app.use(express.static(path.join(__dirname, 'frontend')));
 
-// 2. Route Backend traffic (to Node Express on port 5000)
+// 2. Route Backend API traffic
 app.use('/api/v1', createProxyMiddleware({ 
   target: 'http://localhost:5000', 
   changeOrigin: true 
 }));
 
-// 3. Route everything else to the Frontend (Expo Web on port 8081)
-app.use('/', createProxyMiddleware({ 
-  target: 'http://localhost:8081', 
-  changeOrigin: true,
-  ws: true // Allows WebSocket connections for Expo fast-refresh
-}));
+// Fallback to index.html for unknown routes (optional)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/index.html'));
+});
 
 app.listen(PORT, () => {
-  console.log(`========================================`);
-  console.log(`🌾 Farm Seeva Unified Gateway started!`);
-  console.log(`All services are now running on ONE PORT:`);
-  console.log(`👉 http://localhost:${PORT}`);
-  console.log(`========================================`);
+    console.log(`========================================`);
+    console.log(`🌾 Farm Seeva Unified Gateway started!`);
+    console.log(`👉 http://localhost:${PORT}`);
+    console.log(`========================================`);
 });

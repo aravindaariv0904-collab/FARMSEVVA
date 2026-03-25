@@ -1,0 +1,15 @@
+{
+    "login_title": "Login to Farm Seeva",
+    "login_subtitle": "Enter your phone number to continue",
+    "login_btn": "Get OTP",
+    "soil_title": "Soil Data Input",
+    "soil_subtitle": "Enter latest test results for recommendation",
+    "soil_btn": "Save Records",
+    "dashboard_title": "Dashboard",
+    "dashboard_subtitle": "Current Soil & Recommended Crops",
+    "soil_results": "Latest Soil Results",
+    "recommendations": "Recommended Crops",
+    "loading": "Loading...",
+    "no_data": "No soil data found. Please add initial records.",
+    "no_recommendations": "No specific recommendations for these levels."
+}

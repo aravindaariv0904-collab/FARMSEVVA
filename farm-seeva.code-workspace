@@ -1,0 +1,40 @@
+{
+	"folders": [
+		{
+			"name": "Backend (Core API)",
+			"path": "backend"
+		},
+		{
+			"name": "AI Engine (Terra-AI)",
+			"path": "ai-engine"
+		},
+		{
+			"name": "Mobile (Expo App)",
+			"path": "mobile"
+		},
+		{
+			"name": "Monorepo (Infrastructure)",
+			"path": "."
+		}
+	],
+	"settings": {
+		"python.defaultInterpreterPath": "${workspaceFolder:AI Engine (Terra-AI)}/venv/Scripts/python.exe",
+		"python.analysis.extraPaths": [
+			"${workspaceFolder:AI Engine (Terra-AI)}"
+		],
+		"typescript.tsdk": "backend/node_modules/typescript/lib",
+		"eslint.workingDirectories": [
+			"./backend",
+			"./mobile"
+		],
+		"editor.formatOnSave": true,
+		"files.exclude": {
+			"**/.git": true,
+			"**/node_modules": true,
+			"**/venv": true,
+			"**/.venv": true,
+			"**/.expo": true,
+			"**/dist": true
+		}
+	}
+}

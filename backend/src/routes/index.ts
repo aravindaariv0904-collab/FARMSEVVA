@@ -1,14 +1,12 @@
-import { Router, Request, Response } from 'express';
-import authRoutes from './authRoutes';
-import { authenticate } from '../middleware/auth';
+import { Router } from 'express';
+import authRoutes from '../modules/auth/auth.routes';
+import soilRoutes from '../modules/soil/soil.routes';
+import cropRoutes from '../modules/crop/crop.routes';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
-
-// Protected routes example
-router.get('/health', authenticate, (req: Request, res: Response) => {
-  res.json({ status: 'ok', user: (req as any).user });
-});
+router.use('/soil', soilRoutes);
+router.use('/crop', cropRoutes);
 
 export default router;

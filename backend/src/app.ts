@@ -9,10 +9,10 @@ import routes from './routes';
 
 const app: Application = express();
 
-// Security Middleware
+// 1. Security Headers (Best practice for production)
 app.use(helmet());
 
-// CORS config
+// 2. CORS (Restrict origins in production)
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || '*',
@@ -21,37 +21,51 @@ app.use(
   })
 );
 
-// Logging
-app.use(pinoHttp({ logger, autoLogging: false }));
+// 3. Request Logging (Production-ready logging)
+app.use(pinoHttp({ 
+    logger, 
+    autoLogging: process.env.NODE_ENV === 'production',
+    customLogLevel: (req, res, err) => {
+        if (err || res.statusCode >= 500) return 'error';
+        if (res.statusCode >= 400) return 'warn';
+        return 'info';
+    }
+}));
 
-// Rate Limiting
+// 4. Rate Limiting (Prevent DDoS/Abuse)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-  standardHeaders: 'draft-7',
+  max: 100, // Limit each IP to 100 requests per 15 minutes.
+  standardHeaders: true,
   legacyHeaders: false,
-  message: 'Too many requests, please try again later.',
+  message: { error: 'Too many requests, please try again later.' },
 });
-app.use(limiter);
 
-// Body Parser
+// Apply rate limit to all /api routes
+app.use('/api', limiter);
+
+// 5. Body Parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health Check
+// 6. Health Check
 app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'API is running' });
+  res.status(200).json({ 
+    status: 'UP', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development'
+  });
 });
 
-// API Routes
+// 7. API Routes
 app.use('/api/v1', routes);
 
-// 404 Handler
-app.use('*', (req: Request, res: Response, next: NextFunction) => {
-  next(new AppError(404, `Can't find ${req.originalUrl} on this server!`));
+// 8. 404 Handler
+app.all('*', (req: Request, res: Response, next: NextFunction) => {
+  next(new AppError(404, `Route ${req.originalUrl} not found on this server`));
 });
 
-// Global Error Handler
+// 9. Global Error Handler (Production-ready)
 app.use(errorHandler);
 
 export default app;
