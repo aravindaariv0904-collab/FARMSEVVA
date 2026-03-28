@@ -1,42 +1,40 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { authenticateJWT } from '../../middleware/auth.middleware.js';
+
 const prisma = new PrismaClient();
 const router = Router();
 
-router.post('/setup', async (req, res) => {
-    const { email, farmName, location, ph, nitrogen, phosphorus, potassium } = req.body;
+router.post('/setup', authenticateJWT, async (req, res) => {
+    const { farmName, location, lat, lon, ph, nitrogen, phosphorus, potassium } = req.body;
+    const userId = req.user.userId;
     
-    if (!email) return res.status(400).json({ success: false, message: "User email missing" });
     if (!farmName || !location) return res.status(400).json({ success: false, message: "Farm details required" });
 
     try {
-        // Find or create user
-        let user = await prisma.user.findUnique({ where: { email } });
-        if (!user) {
-            user = await prisma.user.create({ data: { email } });
-        }
-
         // 1. Create Farm record
         const farm = await prisma.farm.create({
             data: {
                 name: farmName,
                 location: location,
-                userId: user.id
+                gpsLat: parseFloat(lat),
+                gpsLng: parseFloat(lon),
+                userId: userId
             }
         });
 
         // 2. Create Soil record for the current user
         await prisma.soilData.create({
             data: {
-                ph,
-                nitrogen,
-                phosphorus,
-                potassium,
-                userId: user.id
+                ph: parseFloat(ph || 0),
+                nitrogen: parseFloat(nitrogen || 0),
+                phosphorus: parseFloat(phosphorus || 0),
+                potassium: parseFloat(potassium || 0),
+                userId: userId
             }
         });
 
-        res.status(200).json({ success: true, message: "Farm and soil data integrated successfully" });
+        res.status(200).json({ success: true, message: "Farm and initial soil data saved successfully", farmId: farm.id });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: "Failed to persist farm data" });
