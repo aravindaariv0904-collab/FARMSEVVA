@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -26,6 +26,8 @@ model Farm {
   location     String
   gpsLat       Float?
   gpsLng       Float?
+  gpsAccuracy  Float?
+  boundary     String?       // Storing GeoJSON as string/json
   userId       String
   user         User          @relation(fields: [userId], references: [id])
   soilProfiles SoilProfile[]
@@ -58,7 +60,7 @@ model WeatherCache {
   id        Int      @id @default(autoincrement())
   lat       Float
   lon       Float
-  data      Json
+  data      String
   fetchedAt DateTime @default(now())
 }
 
@@ -101,7 +103,7 @@ model SoilProfile {
   confidencePct      Float?
   source             String?
   method             String   @default("gps_auto")
-  validationWarnings Json?
+  validationWarnings String?
   lat                Float?
   lon                Float?
   createdAt          DateTime @default(now())

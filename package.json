@@ -2,13 +2,16 @@
   "name": "farm-seeva-monorepo",
   "version": "1.0.0",
   "scripts": {
-    "start": "concurrently \"npm run start:backend\" \"node gateway.js\"",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"cross-env NODE_ENV=development node gateway.js\"",
     "start:backend": "cd backend && npm run dev",
+    "start:frontend": "cd frontend && npm run dev",
     "docker:up": "docker-compose up -d",
     "prisma:init": "cd backend && npx prisma generate && npx prisma migrate dev --name init"
   },
   "dependencies": {
+    "axios": "^1.14.0",
     "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
     "express": "^4.18.2",
     "http-proxy-middleware": "^2.0.6"
   }

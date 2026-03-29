@@ -5,39 +5,36 @@ import { authenticateJWT } from '../../middleware/auth.middleware.js';
 const prisma = new PrismaClient();
 const router = Router();
 
-router.post('/setup', authenticateJWT, async (req, res) => {
-    const { farmName, location, lat, lon, ph, nitrogen, phosphorus, potassium } = req.body;
+router.post('/save-farm', authenticateJWT, async (req, res) => {
+    const { latitude, longitude, accuracy, boundary, timestamp, farmName } = req.body;
     const userId = req.user.userId;
-    
-    if (!farmName || !location) return res.status(400).json({ success: false, message: "Farm details required" });
+
+    // 1. Validation
+    if (accuracy > 50) {
+        return res.status(400).json({ success: false, message: "GPS accuracy is insufficient (> 50m). Please wait for stabilization." });
+    }
+
+    if (!boundary || !boundary.geometry || !boundary.geometry.coordinates) {
+        return res.status(400).json({ success: false, message: "Farm boundary polygon is required." });
+    }
 
     try {
-        // 1. Create Farm record
         const farm = await prisma.farm.create({
             data: {
-                name: farmName,
-                location: location,
-                gpsLat: parseFloat(lat),
-                gpsLng: parseFloat(lon),
+                name: farmName || "New Field Mapping",
+                location: "Guntur Region", // Placeholder or from geocoder
+                gpsLat: parseFloat(latitude),
+                gpsLng: parseFloat(longitude),
+                gpsAccuracy: parseFloat(accuracy),
+                boundary: JSON.stringify(boundary),
                 userId: userId
             }
         });
 
-        // 2. Create Soil record for the current user
-        await prisma.soilData.create({
-            data: {
-                ph: parseFloat(ph || 0),
-                nitrogen: parseFloat(nitrogen || 0),
-                phosphorus: parseFloat(phosphorus || 0),
-                potassium: parseFloat(potassium || 0),
-                userId: userId
-            }
-        });
-
-        res.status(200).json({ success: true, message: "Farm and initial soil data saved successfully", farmId: farm.id });
+        res.status(200).json({ success: true, message: "Farm field saved successfully!", farmId: farm.id });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, message: "Failed to persist farm data" });
+        res.status(500).json({ success: false, message: "Database error during farm save" });
     }
 });
 

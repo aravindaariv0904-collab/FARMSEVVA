@@ -139,7 +139,7 @@ class SoilService {
 
     // 4. AI Validation Check
     const warnings = await validateSoilData(soilData, gpsLat, gpsLng);
-    soilData.validationWarnings = warnings;
+    soilData.validationWarnings = JSON.stringify(warnings);
 
     // 5. Save to Soil Profile
     const profile = await prisma.soilProfile.create({

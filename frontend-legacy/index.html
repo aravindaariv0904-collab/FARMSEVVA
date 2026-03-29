@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Farm Seeva | Premium AI Agriculture</title>
+    
+    <!-- Meta for SEO -->
+    <meta name="description" content="Empowering farmers with AI-driven insights, soil analysis, and real-time market data.">
+    
+    <!-- Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <link rel="stylesheet" href="css/main_new.css">
+
+    <style>
+        /* Small fixes for Leaflet integration */
+        .leaflet-bar { border: none !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; }
+        .leaflet-bar a { background: var(--bg-card) !important; color: white !important; border: 1px solid var(--border-glass) !important; backdrop-filter: blur(10px); }
+        .leaflet-draw-toolbar { border: 1px solid var(--border-glass) !important; border-radius: 12px !important; overflow: hidden; }
+        .leaflet-draw-draw-polygon { background-color: var(--primary) !important; }
+        
+        .toast { position: fixed; top: 2rem; left: 50%; transform: translateX(-50%); padding: 1rem 2rem; border-radius: 12px; background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border-glass); z-index: 10000; animation: toastIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .toast-success { border-color: var(--primary); }
+        .toast-error { border-color: var(--accent); }
+        @keyframes toastIn { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="bg-canvas"></div>
+    <canvas id="neural-mesh"></canvas>
+    <div class="hero-gradient"></div>
+
+    <div id="terra-assistant">🧠</div>
+
+    <main id="app-shell">
+        <div class="screen-container">
+
+            <!-- Screen 1: Welcome & Language -->
+            <div id="screen-1" class="screen-card active">
+                <div class="logo-area" data-animate>
+                    <span style="font-size: 3rem; margin-bottom: 0.5rem; display: block;">🌾</span>
+                    <h1 class="title-glow">Farm Seeva</h1>
+                </div>
+                <p class="subtitle" data-animate data-i18n="langSubtitle">Select your native farming language to get started with AI insights.</p>
+                
+                <div class="selection-grid" data-animate class="delay-1" style="grid-template-columns: repeat(2, 1fr); max-height: 400px; overflow-y: auto; padding-right: 10px; gap: 0.75rem;">
+                    <div class="selection-card selected" data-lang="en">
+                        <span class="icon">🌎</span>
+                        <span class="label">English</span>
+                    </div>
+                    <div class="selection-card" data-lang="hi">
+                        <span class="icon">🇮🇳</span>
+                        <span class="label">हिन्दी</span>
+                    </div>
+                    <div class="selection-card" data-lang="te">
+                        <span class="icon">🌾</span>
+                        <span class="label">తెలుగు</span>
+                    </div>
+                    <div class="selection-card" data-lang="kn">
+                        <span class="icon">🍀</span>
+                        <span class="label">ಕನ್ನಡ</span>
+                    </div>
+                    <div class="selection-card" data-lang="ta">
+                        <span class="icon">🏛️</span>
+                        <span class="label">தமிழ்</span>
+                    </div>
+                    <div class="selection-card" data-lang="bn">
+                        <span class="icon">🐯</span>
+                        <span class="label">বাংলা</span>
+                    </div>
+                    <div class="selection-card" data-lang="mr">
+                        <span class="icon">⛰️</span>
+                        <span class="label">मराठी</span>
+                    </div>
+                    <div class="selection-card" data-lang="pa">
+                        <span class="icon">⚔️</span>
+                        <span class="label">ਪੰਜਾਬੀ</span>
+                    </div>
+                    <div class="selection-card" data-lang="gu">
+                        <span class="icon">🏜️</span>
+                        <span class="label">ગુજરાતી</span>
+                    </div>
+                    <div class="selection-card" data-lang="ml">
+                        <span class="icon">🌴</span>
+                        <span class="label">മലയാളം</span>
+                    </div>
+                </div>
+
+                <button class="btn-primary" data-next="3" data-animate class="delay-2">
+                    Start Onboarding <span style="font-size: 1.2rem">→</span>
+                </button>
+            </div>
+
+            <!-- Screen 2: Verification -->
+            <div id="screen-2" class="screen-card">
+                <h1 class="title-glow">Secure Access</h1>
+                <p class="subtitle">Enter your number to sync your farm data across devices.</p>
+                
+                <div style="text-align: left; width: 100%;" data-animate>
+                    <label class="subtitle" style="display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase;">Registerd Email</label>
+                    <input type="email" id="userEmail" class="input-premium" placeholder="farmer@seeva.com">
+                    
+                    <div id="otp-area" style="display: none;">
+                        <label class="subtitle" style="display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase;">Verification Code</label>
+                        <input type="text" id="userOTP" class="input-premium" placeholder="Enter 4-digit OTP">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button class="btn-primary" data-next="1" style="flex: 1; background: transparent; border: 1px solid var(--border-glass);">Back</button>
+                    <button id="auth-action-btn" class="btn-primary" style="flex: 2;">Send OTP</button>
+                </div>
+            </div>
+
+            <!-- Screen 3: GPS Location -->
+            <div id="screen-3" class="screen-card">
+                <h1 class="title-glow">Locate Field</h1>
+                <p class="subtitle">Enter farm name and center the map on your land.</p>
+                
+                <input type="text" id="farmName" class="input-premium" placeholder="Farm Name (e.g. Green Valley)">
+                
+                <div id="map-loc" class="map-host" data-animate></div>
+                
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 0.75rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.8rem; color: var(--primary-light); display: flex; align-items: center; gap: 0.5rem;" data-animate>
+                    <span>🎯</span> Guntur, Andhra Pradesh (Verified GPS)
+                </div>
+
+                <button class="btn-primary" data-next="4">Confirm Location</button>
+            </div>
+
+            <!-- Screen 4: Field Boundary -->
+            <div id="screen-4" class="screen-card">
+                <h1 class="title-glow">Draw Boundary</h1>
+                <p class="subtitle">Draw the geometric shape of your field for exact soil health analysis.</p>
+                
+                <div id="map-draw" class="map-host" data-animate></div>
+                
+                <button class="btn-primary" id="confirm-boundary-btn" disabled data-next="5">Confirm Boundary →</button>
+            </div>
+
+            <!-- Screen 5: Soil Method -->
+            <div id="screen-5" class="screen-card">
+                <h1 class="title-glow">Soil Profile</h1>
+                <p class="subtitle">How would you like to provide your soil details?</p>
+                
+                <div class="selection-grid" data-animate>
+                    <div class="selection-card selected" data-next="6">
+                        <span class="icon">🛰️</span>
+                        <span class="label">Satellite Sync</span>
+                        <span style="font-size: 0.6rem; opacity: 0.5;">Auto-fetch</span>
+                    </div>
+                    <div class="selection-card">
+                        <span class="icon">📸</span>
+                        <span class="label">Photo Scan</span>
+                        <span style="font-size: 0.6rem; opacity: 0.5;">Manual Lab Report</span>
+                    </div>
+                    <div class="selection-card">
+                        <span class="icon">🤖</span>
+                        <span class="label">AI Chat</span>
+                        <span style="font-size: 0.6rem; opacity: 0.5;">Voice Guided</span>
+                    </div>
+                    <div class="selection-card">
+                        <span class="icon">✍️</span>
+                        <span class="label">Manual</span>
+                        <span style="font-size: 0.6rem; opacity: 0.5;">Direct Input</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 6: Satellite Sync Animation -->
+            <div id="screen-6" class="screen-card">
+                <h1 class="title-glow">Orbital Sync</h1>
+                <p class="subtitle">Linking with Sentinel-2 & ISRO Bhuvan satellites...</p>
+                
+                <div style="font-size: 4rem; margin: 2rem 0; animation: spin 4s linear infinite;">🛰️</div>
+                
+                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 1rem;">
+                    <div id="fetch-progress-bar" style="width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 15px var(--primary-glow); transition: width 0.3s ease;"></div>
+                </div>
+                
+                <p id="sync-log" style="font-size: 0.75rem; color: var(--primary-light); margin-top: 1rem;">Establishing secure link...</p>
+            </div>
+
+            <!-- Screen 7: Soil Results -->
+            <div id="screen-7" class="screen-card">
+                <h1 class="title-glow">Soil Synthesis</h1>
+                <p class="subtitle" style="margin-bottom: 1.5rem;">Results from the latest orbital pass.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: left; margin-bottom: 1.5rem;">
+                    <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 16px; border: 1px solid var(--border-glass);">
+                        <p style="font-size: 0.6rem; opacity: 0.5; text-transform: uppercase;">Soil Type</p>
+                        <p style="font-size: 1.1rem; font-weight: 700; color: var(--primary-light);">Black Clay</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 16px; border: 1px solid var(--border-glass);">
+                        <p style="font-size: 0.6rem; opacity: 0.5; text-transform: uppercase;">pH Level</p>
+                        <p style="font-size: 1.1rem; font-weight: 700;">7.8 (Rich)</p>
+                    </div>
+                </div>
+                
+                <div style="text-align: left; margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.75rem; opacity: 0.7;">Nitrogen (N) Content</span>
+                        <span style="font-size: 0.75rem; color: var(--primary-light);">Optimal</span>
+                    </div>
+                    <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;">
+                        <div style="width: 85%; height: 100%; background: var(--primary);"></div>
+                    </div>
+                </div>
+
+                <button class="btn-primary" data-next="8">Confirm Soil Data →</button>
+            </div>
+
+            <!-- Screen 8: Style & Intensity -->
+            <div id="screen-8" class="screen-card">
+                <h1 class="title-glow">Farming Style</h1>
+                <p class="subtitle">Tell us about your cultivation preferences.</p>
+                
+                <div style="text-align: left; margin-bottom: 1.5rem;">
+                    <label class="subtitle" style="display: block; margin-bottom: 0.75rem; font-size: 0.8rem; text-transform: uppercase;">Crop Variety</label>
+                    <div class="selection-grid" style="grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="selection-card selected" style="padding: 1rem;">
+                            <span class="label">Single Crop</span>
+                        </div>
+                        <div class="selection-card" style="padding: 1rem;">
+                            <span class="label">Multi-Crop</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: left; margin-bottom: 1.5rem;">
+                    <label class="subtitle" style="display: block; margin-bottom: 0.75rem; font-size: 0.8rem; text-transform: uppercase;">Irrigation Method</label>
+                    <div class="selection-grid" style="grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="selection-card selected" style="padding: 1rem;">
+                            <span class="icon" style="font-size: 1rem;">💧</span>
+                            <span class="label">Drip</span>
+                        </div>
+                        <div class="selection-card" style="padding: 1rem;">
+                            <span class="icon" style="font-size: 1rem;">🌊</span>
+                            <span class="label">Flood</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-primary" data-next="9">Analyze Profile →</button>
+            </div>
+
+            <!-- Screen 9: AI Analysis -->
+            <div id="screen-9" class="screen-card">
+                <h1 class="title-glow">Terra AI</h1>
+                <p class="subtitle">Simulating harvest cycles and market trends for your grid section...</p>
+                
+                <div style="position: relative; margin: 2rem 0;">
+                    <div style="font-size: 5rem; animation: pulse 2s infinite alternate;">🧠</div>
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); border-radius: 50%; z-index: -1;"></div>
+                </div>
+                
+                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;">
+                    <div id="ai-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); box-shadow: 0 0 15px var(--primary-glow); transition: width 0.1s linear;"></div>
+                </div>
+                
+                <p style="font-size: 0.7rem; font-style: italic; opacity: 0.5; margin-top: 1rem;">"Matching Cotton yield for Guntur district..."</p>
+            </div>
+
+            <!-- Screen 10: Final Dashboard -->
+            <div id="screen-10" class="screen-card">
+                <h1 class="title-glow">Welcome, Ram!</h1>
+                <p class="subtitle">Your personalized farm ecosystem is ready.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                    <div style="background: rgba(16, 185, 129, 0.1); padding: 1.25rem; border-radius: 20px; border: 1px solid var(--border-glass);">
+                        <p style="font-size: 0.6rem; opacity: 0.6; text-transform: uppercase;">Confidence</p>
+                        <p style="font-size: 1.5rem; font-weight: 800; color: var(--primary-light);">98.2%</p>
+                        <p style="font-size: 0.75rem;">Crop Match</p>
+                    </div>
+                    <div style="background: rgba(251, 191, 36, 0.1); padding: 1.25rem; border-radius: 20px; border: 1px solid rgba(251, 191, 36, 0.2);">
+                        <p style="font-size: 0.6rem; opacity: 0.6; text-transform: uppercase;">ROI Estimate</p>
+                        <p style="font-size: 1.5rem; font-weight: 800; color: var(--secondary);">₹85k</p>
+                        <p style="font-size: 0.75rem;">per acre</p>
+                    </div>
+                </div>
+
+                <div style="text-align: left; margin-bottom: 2rem;">
+                    <p style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.75rem;">RECOMMENDED CROP</p>
+                    <div style="display: flex; align-items: center; gap: 1rem; background: var(--bg-glass); padding: 1rem; border-radius: 16px; border: 1px solid var(--border-glass);">
+                        <span style="font-size: 2rem;">🌱</span>
+                        <div>
+                            <p style="font-weight: 800; font-size: 1.1rem;">Super Guntur Chilli</p>
+                            <p style="font-size: 0.7rem; color: var(--text-muted);">Optimal for current pH and market price.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-primary" style="background: linear-gradient(135deg, var(--secondary), #d97706); box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3); border: none;" onclick="location.href='/dashboard'">
+                    Enter Dashboard 👑
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Progress Footer -->
+        <div class="progress-stepper">
+            <div class="stepper-dots">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <p style="font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; margin-top: 0.5rem; opacity: 0.5;">Farm Setup Progress</p>
+        </div>
+    </main>
+
+    <!-- Core Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script type="module" src="js/app_new.js"></script>
+
+    <style>
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</body>
+</html>
