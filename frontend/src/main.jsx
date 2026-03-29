@@ -8,3 +8,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )
+
+// PWA Registration for Indian Farmers
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(registration => {
+      console.log('Seeva SW Registered:', registration.scope);
+    }).catch(err => {
+      console.log('Seeva SW Failed:', err);
+    });
+  });
+}
