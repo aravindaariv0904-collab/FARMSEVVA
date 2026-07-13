@@ -1,4 +1,4 @@
-# 🌾 Farm Seeva - AI-Powered Agriculture Platform
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://aravind-aariv-farmsevva.netlify.app)\n\n# 🌾 Farm Seeva - AI-Powered Agriculture Platform
 
 ![Farm Seeva Dashboard](https://github.com/aravindaariv0904-collab/FARMSEVVA/raw/main/assets/preview.png)
 
